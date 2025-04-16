@@ -34,7 +34,21 @@ cd ngrok-qr
 npm install
 ```
 
-3. Configura tu token de autenticación de ngrok (necesario solo la primera vez)
+3. Configura tu token de autenticación de ngrok (necesario solo la primera vez):
+
+```bash
+npx ngrok authtoken TU_TOKEN_AQUI
+```
+
+Para obtener tu token de autenticación:
+
+1. Crea una cuenta en [ngrok.com](https://ngrok.com)
+2. Inicia sesión en tu cuenta
+3. Ve a [dashboard.ngrok.com/get-started/your-authtoken](https://dashboard.ngrok.com/get-started/your-authtoken)
+4. Copia tu token de autenticación
+5. Ejecuta el comando anterior reemplazando `TU_TOKEN_AQUI` con tu token
+
+Este paso es necesario solo una vez por dispositivo y el token se guardará automáticamente.
 
 ## 💻 Uso
 

@@ -1,25 +1,25 @@
-# ngrok-qr
+# ngrok-qr-cli
 
-Una herramienta de línea de comandos que genera automáticamente un código QR para tu túnel de ngrok, facilitando compartir tu servidor local con otros dispositivos.
+Herramienta de línea de comandos para exponer tu servidor local usando ngrok y mostrar un código QR para compartir fácilmente la URL en otros dispositivos.
 
 ![Demo de ngrok-qr](./ngrok_qr.png)
 
-## ✨ Características
+---
 
-- 🚇 Generación automática de túneles ngrok
-- 📱 Generación de códigos QR en la terminal
-- 🎨 Interfaz colorida y amigable en la terminal
-- 🔄 Cierre automático y limpio del túnel
-- ⚙️ Puerto configurable mediante argumentos
+## ⚡ Inicio rápido
 
-## 📋 Requisitos previos
+Instala globalmente y ejecuta en un solo paso:
 
-- Node.js (versión 16 o superior)
-- npm o yarn
-- Una cuenta de ngrok (gratuita o de pago)
-- Token de autenticación de ngrok
+```bash
+npm install -g ngrok-qr-cli
+ngrok-qr-cli --port 3000
+```
 
-## 🚀 Instalación
+- `--port` o `-p`: Puerto local a exponer (por defecto: 3000)
+
+---
+
+## 📦 Instalación local (desarrollo)
 
 1. Clona este repositorio:
 
@@ -34,7 +34,7 @@ cd ngrok-qr
 npm install
 ```
 
-3. Configura tu token de autenticación de ngrok (necesario solo la primera vez):
+3. Configura tu token de autenticación de ngrok (solo la primera vez):
 
 ```bash
 npx ngrok authtoken TU_TOKEN_AQUI
@@ -50,9 +50,19 @@ Para obtener tu token de autenticación:
 
 Este paso es necesario solo una vez por dispositivo y el token se guardará automáticamente.
 
+---
+
 ## 💻 Uso
 
-### Comando básico:
+### Como CLI global
+
+```bash
+ngrok-qr-cli --port 8080
+```
+
+### Como proyecto local
+
+Comando básico:
 
 ```bash
 npm start
@@ -60,23 +70,19 @@ npm start
 
 Esto iniciará el túnel en el puerto predeterminado (3000).
 
-### Especificar un puerto personalizado:
+Especificar un puerto personalizado:
 
 ```bash
 npm start -- -p 8080
 ```
 
-o
-
-```bash
-npm start -- --port 8080
-```
-
-### Modo desarrollo:
+Modo desarrollo:
 
 ```bash
 npm run dev
 ```
+
+---
 
 ## 🛠️ Scripts disponibles
 
@@ -85,6 +91,8 @@ npm run dev
 - `npm run dev` - Inicia la aplicación en modo desarrollo con recarga automática
 - `npm run format` - Formatea el código usando Prettier
 - `npm run format:check` - Verifica el formato del código
+
+---
 
 ## 🔧 Tecnologías utilizadas
 
@@ -95,13 +103,19 @@ npm run dev
 - [yargs](https://www.npmjs.com/package/yargs) - Análisis de argumentos CLI
 - [ts-node](https://www.npmjs.com/package/ts-node) - Ejecución de TypeScript
 
+---
+
 ## 📝 Licencia
 
 Este proyecto está bajo la licencia ISC.
 
+---
+
 ## 🤝 Contribuir
 
-Las contribuciones son bienvenidas. Por favor, asegúrate de actualizar las pruebas según corresponda.
+¡Las contribuciones son bienvenidas! Por favor, abre un issue o un pull request.
+
+---
 
 ## ⚠️ Solución de problemas
 
@@ -110,3 +124,9 @@ Si encuentras el error "Tunnel session failed", asegúrate de:
 1. Tener configurado correctamente tu token de autenticación de ngrok
 2. Que el puerto que intentas exponer esté disponible
 3. Que no haya otro túnel de ngrok activo
+
+---
+
+## 📬 Soporte
+
+¿Tienes dudas, sugerencias o encontraste un bug? Abre un issue en el repositorio o contáctame.

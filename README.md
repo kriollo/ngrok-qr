@@ -2,6 +2,8 @@
 
 Una herramienta de línea de comandos que genera automáticamente un código QR para tu túnel de ngrok, facilitando compartir tu servidor local con otros dispositivos.
 
+![Demo de ngrok-qr](./ngrok_qr.png)
+
 ## ✨ Características
 
 - 🚇 Generación automática de túneles ngrok

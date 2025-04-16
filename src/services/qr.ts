@@ -1,14 +1,17 @@
+import chalk from 'chalk';
 import QRCode from 'qrcode';
 
-export async function generateQR(text: string): Promise<string> {
+export async function generateQR(url: string): Promise<string> {
     try {
-        const qrCode = await QRCode.toString(text, {
+        const qrString = await QRCode.toString(url, {
             type: 'terminal',
-            small: true
+            small: true,
         });
-        return qrCode;
+        console.log(chalk.cyan('\nCódigo QR para acceder a tu aplicación:'));
+        console.log(qrString);
+        return qrString;
     } catch (error) {
-        console.error('Error al generar el código QR:', error);
+        console.error(chalk.red('✖ Error al generar el código QR:'), error);
         throw error;
     }
 }

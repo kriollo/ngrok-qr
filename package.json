@@ -1,0 +1,27 @@
+{
+  "name": "ngrok-qr",
+  "version": "1.0.0",
+  "description": "Aplicación que muestra la URL de ngrok en código QR",
+  "type": "module",
+  "main": "dist/index.js",
+  "scripts": {
+    "build": "tsc",
+    "start": "node --loader ts-node/esm src/index.ts",
+    "dev": "node --loader ts-node/esm --watch src/index.ts"
+  },
+  "keywords": [
+    "ngrok",
+    "qr",
+    "typescript"
+  ],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@types/node": "^20.11.30",
+    "@types/qrcode": "^1.5.5",
+    "ngrok": "^5.0.0-beta.2",
+    "qrcode": "^1.5.3",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.4.3"
+  }
+}

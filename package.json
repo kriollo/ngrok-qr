@@ -1,6 +1,6 @@
 {
   "name": "ngrok-qr-cli",
-  "version": "1.0.4",
+  "version": "1.0.5",
   "description": "Aplicación que muestra la URL de ngrok en código QR",
   "type": "module",
   "main": "dist/index.js",

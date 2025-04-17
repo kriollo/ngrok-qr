@@ -2,24 +2,55 @@
 
 Herramienta de línea de comandos para exponer tu servidor local usando ngrok y mostrar un código QR para compartir fácilmente la URL en otros dispositivos.
 
+> ⚠️ **IMPORTANTE:** Para usar esta herramienta necesitas un token de autenticación de ngrok. [¿Cómo obtenerlo?](#configura-tu-token-de-ngrok)
+
 ![Demo de ngrok-qr](./ngrok_qr.png)
 
 ---
 
-## ⚡ Inicio rápido
+## 🚀 Primeros pasos
 
-Instala globalmente y ejecuta en un solo paso:
+### 1. Configura tu token de ngrok
+
+Antes de instalar o ejecutar cualquier comando, necesitas configurar tu token de autenticación:
+
+```bash
+npx ngrok authtoken TU_TOKEN_AQUI
+```
+
+¿No tienes tu token? Sigue estos pasos:
+
+1. Crea una cuenta en [ngrok.com](https://ngrok.com)
+2. Inicia sesión en tu cuenta
+3. Ve a [dashboard.ngrok.com/get-started/your-authtoken](https://dashboard.ngrok.com/get-started/your-authtoken)
+4. Copia tu token de autenticación
+5. Ejecuta el comando anterior reemplazando `TU_TOKEN_AQUI` con tu token
+
+Este paso es necesario solo una vez por dispositivo y el token se guardará automáticamente.
+
+---
+
+## ⚡ Instalación y uso
+
+Puedes usar ngrok-qr-cli de dos formas:
+
+### Uso global (recomendado)
+
+Instala el paquete globalmente:
 
 ```bash
 npm install -g ngrok-qr-cli
+```
+
+Ejecuta el comando:
+
+```bash
 ngrok-qr-cli --port 3000
 ```
 
 - `--port` o `-p`: Puerto local a exponer (por defecto: 3000)
 
----
-
-## 📦 Instalación local (desarrollo)
+### Uso local (desarrollo)
 
 1. Clona este repositorio:
 
@@ -34,43 +65,13 @@ cd ngrok-qr
 npm install
 ```
 
-3. Configura tu token de autenticación de ngrok (solo la primera vez):
-
-```bash
-npx ngrok authtoken TU_TOKEN_AQUI
-```
-
-Para obtener tu token de autenticación:
-
-1. Crea una cuenta en [ngrok.com](https://ngrok.com)
-2. Inicia sesión en tu cuenta
-3. Ve a [dashboard.ngrok.com/get-started/your-authtoken](https://dashboard.ngrok.com/get-started/your-authtoken)
-4. Copia tu token de autenticación
-5. Ejecuta el comando anterior reemplazando `TU_TOKEN_AQUI` con tu token
-
-Este paso es necesario solo una vez por dispositivo y el token se guardará automáticamente.
-
----
-
-## 💻 Uso
-
-### Como CLI global
-
-```bash
-ngrok-qr-cli --port 8080
-```
-
-### Como proyecto local
-
-Comando básico:
+3. Ejecuta la aplicación:
 
 ```bash
 npm start
 ```
 
-Esto iniciará el túnel en el puerto predeterminado (3000).
-
-Especificar un puerto personalizado:
+Para especificar un puerto personalizado:
 
 ```bash
 npm start -- -p 8080

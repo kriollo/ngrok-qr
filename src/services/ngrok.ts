@@ -7,6 +7,8 @@ export async function startNgrok(port: number = 3000): Promise<string> {
             addr: port,
             proto: 'http',
         });
+        const inspect = await ngrok.getUrl();
+
         console.log(
             chalk.green('✓') +
                 chalk.bold(' Ngrok túnel establecido en: ') +
@@ -15,8 +17,9 @@ export async function startNgrok(port: number = 3000): Promise<string> {
         console.log(
             chalk.yellow('ℹ') +
                 chalk.bold(' Interfaz de inspección de Ngrok disponible en: ') +
-                chalk.blue.underline('http://localhost:4040'),
+                chalk.blue.underline(inspect),
         );
+
         return url;
     } catch (error) {
         console.error(chalk.red('✖ Error al iniciar ngrok:'), error);

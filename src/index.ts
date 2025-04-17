@@ -15,16 +15,13 @@ async function main() {
         .help().argv;
 
     try {
-        console.log('Iniciando la aplicación...\n\n\n\n');
+        console.log('\n\n\n\n');
+        console.log('Iniciando la aplicación...\n');
         console.log(`Iniciando ngrok en el puerto ${argv.port}...`);
 
         const url = await startNgrok(argv.port);
-        console.log('\nURL de ngrok generada:');
-        console.log(url);
 
-        console.log('\nCódigo QR:');
         await generateQR(url);
-        // console.log(qr);
 
         // Manejar el cierre de la aplicación
         process.on('SIGINT', async () => {

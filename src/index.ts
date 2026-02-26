@@ -1,18 +1,34 @@
 #!/usr/bin/env node
-import yargs from 'yargs';
-import { hideBin } from 'yargs/helpers';
-import { startNgrok, stopNgrok } from './services/ngrok.js';
+import { startNgrok, stopNgrok, isNgrokStarted } from './services/ngrok.js';
 import { generateQR } from './services/qr.js';
 
+function parseArgs(): { port: number } {
+    const args = process.argv.slice(2);
+    const portIndex = args.findIndex(arg => arg === '-p' || arg === '--port');
+
+    if (portIndex !== -1 && args[portIndex + 1]) {
+        const port = parseInt(args[portIndex + 1], 10);
+        if (!isNaN(port)) {
+            return { port };
+        }
+    }
+
+    return { port: 3000 };
+}
+
 async function main() {
-    const argv = await yargs(hideBin(process.argv))
-        .option('port', {
-            alias: 'p',
-            type: 'number',
-            description: 'Puerto a utilizar',
-            default: 3000,
-        })
-        .help().argv;
+    const argv = parseArgs();
+
+    const cleanup = async () => {
+        if (isNgrokStarted()) {
+            console.log('\nCerrando ngrok...');
+            await stopNgrok();
+        }
+        process.exit(0);
+    };
+
+    process.on('SIGINT', cleanup);
+    process.on('SIGTERM', cleanup);
 
     try {
         console.log('\n\n\n\n');
@@ -22,13 +38,6 @@ async function main() {
         const url = await startNgrok(argv.port);
 
         await generateQR(url);
-
-        // Manejar el cierre de la aplicación
-        process.on('SIGINT', async () => {
-            console.log('\nCerrando ngrok...');
-            await stopNgrok();
-            process.exit(0);
-        });
     } catch (error) {
         console.error('Error en la aplicación:', error);
         await stopNgrok();

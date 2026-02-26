@@ -1,44 +1,45 @@
 {
-  "name": "ngrok-qr-cli",
-  "version": "1.0.5",
-  "description": "Aplicación que muestra la URL de ngrok en código QR",
-  "type": "module",
-  "main": "dist/index.js",
-  "bin": {
-    "ngrok-qr-cli": "dist/index.js"
-  },
-  "scripts": {
-    "build": "npx tsc",
-    "start": "node --loader ts-node/esm src/index.ts",
-    "dev": "node --loader ts-node/esm --watch src/index.ts",
-    "format": "prettier --write \"src/**/*.{ts,js}\"",
-    "format:check": "prettier --check \"src/**/*.{ts,js}\""
-  },
-  "keywords": [
-    "ngrok",
-    "qr",
-    "typescript"
-  ],
-  "author": "",
-  "license": "ISC",
-  "files": [
-    "dist/",
-    "package.json",
-    "README.md"
-  ],
-  "dependencies": {
-    "@types/node": "^20.11.30",
-    "@types/qrcode": "^1.5.5",
-    "chalk": "^5.4.1",
-    "ngrok": "^5.0.0-beta.2",
-    "qrcode": "^1.5.3",
-    "ts-node": "^10.9.2",
-    "yargs": "^17.7.2"
-  },
-  "devDependencies": {
-    "@types/yargs": "^17.0.33",
-    "oxlint": "^0.16.6",
-    "prettier": "^3.5.3",
-    "typescript": "^5.8.3"
-  }
+    "name": "ngrok-qr-cli",
+    "version": "1.0.6",
+    "description": "Aplicación que muestra la URL de ngrok en código QR",
+    "type": "module",
+    "main": "dist/index.js",
+    "bin": {
+        "ngrok-qr-cli": "dist/index.js"
+    },
+    "scripts": {
+        "build": "npx tsc",
+        "start": "tsx src/index.ts",
+        "dev": "tsx watch src/index.ts",
+        "format": "prettier --write \"src/**/*.{ts,js}\"",
+        "format:check": "prettier --check \"src/**/*.{ts,js}\""
+    },
+    "keywords": [
+        "ngrok",
+        "qr",
+        "typescript"
+    ],
+    "author": "",
+    "license": "ISC",
+    "files": [
+        "dist/",
+        "package.json",
+        "README.md"
+    ],
+    "dependencies": {
+        "@types/node": "^25.3.1",
+        "@types/qrcode": "^1.5.6",
+        "chalk": "^5.6.2",
+        "ngrok": "5.0.0-beta.2",
+        "qrcode": "^1.5.4",
+        "ts-node": "^10.9.2",
+        "yargs": "^18.0.0"
+    },
+    "devDependencies": {
+        "@types/yargs": "^17.0.35",
+        "oxlint": "^1.50.0",
+        "prettier": "^3.8.1",
+        "tsx": "^4.21.0",
+        "typescript": "^5.9.3"
+    }
 }

@@ -1,27 +1,8 @@
 import chalk from 'chalk';
 import ngrok from 'ngrok';
 import readline from 'readline';
-import { spawn, ChildProcess } from 'child_process';
-import { promisify } from 'util';
-import { exec } from 'child_process';
-import path from 'path';
-import { fileURLToPath } from 'url';
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-
-const execAsync = promisify(exec);
 
 let ngrokStarted = false;
-let ngrokProcess: ChildProcess | null = null;
-
-async function killNgrokProcess(): Promise<void> {
-    try {
-        await execAsync('taskkill //F //IM ngrok.exe', { windowsHide: true });
-    } catch {
-        // Ignore if no process
-    }
-}
 
 async function promptForAuthtoken(): Promise<string> {
     const rl = readline.createInterface({
@@ -46,14 +27,16 @@ async function getAuthtoken(): Promise<string | null> {
         return envToken;
     }
 
-    const configPath = ngrok.defaultConfigPath();
     const fs = await import('fs');
+    const configPaths = [ngrok.defaultConfigPath(), ngrok.oldDefaultConfigPath()];
 
-    if (fs.existsSync(configPath)) {
-        const content = fs.readFileSync(configPath, 'utf-8');
-        const match = content.match(/authtoken:\s*(\S+)/);
-        if (match) {
-            return match[1];
+    for (const configPath of configPaths) {
+        if (fs.existsSync(configPath)) {
+            const content = fs.readFileSync(configPath, 'utf-8');
+            const match = content.match(/authtoken:\s*(\S+)/);
+            if (match) {
+                return match[1];
+            }
         }
     }
 
@@ -93,100 +76,91 @@ async function ensureAuthtoken(): Promise<string> {
     return token;
 }
 
+// Elimina túneles activos del daemon ngrok si ya está corriendo (de una ejecución anterior)
+async function clearExistingTunnels(): Promise<void> {
+    try {
+        const res = await fetch('http://127.0.0.1:4040/api/tunnels');
+        if (!res.ok) return;
+        const data = (await res.json()) as { tunnels: Array<{ name: string }> };
+        await Promise.all(
+            data.tunnels.map(t =>
+                fetch(
+                    `http://127.0.0.1:4040/api/tunnels/${encodeURIComponent(t.name)}`,
+                    { method: 'DELETE' },
+                ).catch(() => {}),
+            ),
+        );
+    } catch {
+        // ngrok no está en ejecución — ignorar
+    }
+}
+
 export async function startNgrok(port: number = 3000): Promise<string> {
     const token = await ensureAuthtoken();
 
-    await killNgrokProcess();
-    await new Promise(resolve => setTimeout(resolve, 1000));
+    // Limpiar túneles y procesos de ejecuciones anteriores
+    await clearExistingTunnels();
+    try {
+        await ngrok.kill();
+    } catch {
+        // Ignorar si no hay proceso activo
+    }
 
-    const ngrokPath = path.join(
-        process.cwd(),
-        'node_modules',
-        '.pnpm',
-        'ngrok@5.0.0-beta.2',
-        'node_modules',
-        'ngrok',
-        'bin',
-        'ngrok.exe',
-    );
+    // Workaround para bug en ngrok@5.0.0-beta.2 + binario ngrok v3:
+    // El daemon pre-registra el UUID del túnel internamente incluso cuando devuelve
+    // 503 "not ready yet". La librería reintenta con el mismo UUID → 400 "already exists".
+    // Solución: detectar el error, esperar a que la sesión se establezca realmente
+    // (via onStatusChange), y reintentar con un nuevo UUID.
+    let resolveSession!: () => void;
+    const sessionReady = new Promise<void>(r => (resolveSession = r));
 
-    console.log('Using ngrok from:', ngrokPath);
+    for (let attempt = 1; attempt <= 2; attempt++) {
+        try {
+            const url = await ngrok.connect({
+                addr: port,
+                authtoken: token,
+                // Solo en el primer intento: registrar el callback en startProcess
+                ...(attempt === 1 && {
+                    onStatusChange: (status: 'connected' | 'closed') => {
+                        if (status === 'connected') resolveSession();
+                    },
+                }),
+            });
+            ngrokStarted = true;
+            console.log(
+                chalk.green('✓') +
+                    chalk.bold(' Ngrok túnel establecido en: ') +
+                    chalk.blue.underline(url),
+            );
+            return url;
+        } catch (error) {
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            const isGhostTunnelBug =
+                (error as any)?.body?.error_code === 102 && attempt < 2;
+            if (!isGhostTunnelBug) throw error;
 
-    return new Promise((resolve, reject) => {
-        const args = [
-            'http',
-            String(port),
-            '--authtoken',
-            token,
-            '--log',
-            'stdout',
-        ];
+            // Esperar hasta que la sesión esté establecida (máx. 10 s)
+            await Promise.race([
+                sessionReady,
+                new Promise<void>(r => setTimeout(r, 10_000)),
+            ]);
+        }
+    }
 
-        ngrokProcess = spawn(ngrokPath, args, {
-            stdio: ['ignore', 'pipe', 'pipe'],
-            detached: false,
-            windowsHide: true,
-        });
-
-        let url: string | null = null;
-
-        ngrokProcess.stdout?.on('data', (data: Buffer) => {
-            const output = data.toString();
-            const urlMatch = output.match(/url=(https?:\/\/[^\s]+)/);
-            if (urlMatch) {
-                url = urlMatch[1];
-            }
-        });
-
-        ngrokProcess.stderr?.on('data', (data: Buffer) => {
-            const output = data.toString();
-            console.log('ngrok:', output.trim());
-        });
-
-        ngrokProcess.on('error', err => {
-            reject(err);
-        });
-
-        ngrokProcess.on('close', code => {
-            if (code !== 0 && !url) {
-                reject(new Error(`ngrok exited with code ${code}`));
-            }
-        });
-
-        setTimeout(() => {
-            if (url) {
-                ngrokStarted = true;
-                console.log(
-                    chalk.green('✓') +
-                        chalk.bold(' Ngrok túnel establecido en: ') +
-                        chalk.blue.underline(url),
-                );
-                resolve(url);
-            } else {
-                reject(new Error('No se pudo obtener la URL de ngrok'));
-            }
-        }, 5000);
-    });
+    throw new Error('No se pudo establecer el túnel ngrok');
 }
 
 export async function stopNgrok(): Promise<void> {
-    if (!ngrokStarted) {
-        return;
-    }
-
     try {
-        if (ngrokProcess) {
-            ngrokProcess.kill();
-            ngrokProcess = null;
-        }
-
-        await killNgrokProcess();
-
-        ngrokStarted = false;
+        await ngrok.disconnect();
+    } catch {}
+    try {
+        await ngrok.kill();
+    } catch {}
+    if (ngrokStarted) {
         console.log(chalk.green('✓') + ' Ngrok túnel cerrado correctamente');
-    } catch (error) {
-        console.error(chalk.red('✖ Error al detener ngrok:'), error);
     }
+    ngrokStarted = false;
 }
 
 export function isNgrokStarted(): boolean {

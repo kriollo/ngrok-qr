@@ -1,133 +1,139 @@
 # ngrok-qr-cli
 
-Herramienta de línea de comandos para exponer tu servidor local usando ngrok y mostrar un código QR para compartir fácilmente la URL en otros dispositivos.
+CLI para exponer tu servidor local con ngrok y mostrar la URL pública como código QR en la terminal.
 
-> ⚠️ **IMPORTANTE:** Para usar esta herramienta necesitas un token de autenticación de ngrok. [¿Cómo obtenerlo?](#configura-tu-token-de-ngrok)
-
-![Demo de ngrok-qr](./ngrok_qr.png)
+> **Requisito:** Necesitas un authtoken de ngrok (gratuito). [¿Cómo obtenerlo?](#1-configurar-el-authtoken-de-ngrok)
 
 ---
 
-## 🚀 Primeros pasos
-
-### 1. Configura tu token de ngrok
-
-Antes de instalar o ejecutar cualquier comando, necesitas configurar tu token de autenticación:
-
-```bash
-npx ngrok authtoken TU_TOKEN_AQUI
-```
-
-¿No tienes tu token? Sigue estos pasos:
-
-1. Crea una cuenta en [ngrok.com](https://ngrok.com)
-2. Inicia sesión en tu cuenta
-3. Ve a [dashboard.ngrok.com/get-started/your-authtoken](https://dashboard.ngrok.com/get-started/your-authtoken)
-4. Copia tu token de autenticación
-5. Ejecuta el comando anterior reemplazando `TU_TOKEN_AQUI` con tu token
-
-Este paso es necesario solo una vez por dispositivo y el token se guardará automáticamente.
-
----
-
-## ⚡ Instalación y uso
-
-Puedes usar ngrok-qr-cli de dos formas:
-
-### Uso global (recomendado)
-
-Instala el paquete globalmente:
+## Instalación global (recomendado)
 
 ```bash
 npm install -g ngrok-qr-cli
 ```
 
-Ejecuta el comando:
+Una vez instalado, ejecuta:
 
 ```bash
 ngrok-qr-cli --port 3000
 ```
 
-- `--port` o `-p`: Puerto local a exponer (por defecto: 3000)
+- `-p` / `--port`: Puerto local a exponer (por defecto: `3000`)
 
-### Uso local (desarrollo)
+---
 
-1. Clona este repositorio:
+## Primeros pasos
+
+### 1. Configurar el authtoken de ngrok
+
+Crea una cuenta gratuita en [ngrok.com](https://ngrok.com), obtén tu token desde el
+[dashboard](https://dashboard.ngrok.com/get-started/your-authtoken) y ejecútalo una vez:
 
 ```bash
-git clone https://github.com/tuusuario/ngrok-qr.git
-cd ngrok-qr
+ngrok-qr-cli   # la primera vez te pedirá el token interactivamente
 ```
 
-2. Instala las dependencias:
+O bien configúralo manualmente con el CLI de ngrok:
 
 ```bash
-npm install
+npx ngrok authtoken TU_TOKEN
 ```
 
-3. Ejecuta la aplicación:
+El token se guarda en `~/.config/ngrok/ngrok.yml` y no necesitas repetirlo.
+
+---
+
+## Uso
 
 ```bash
-npm start
+# Puerto por defecto (3000)
+ngrok-qr-cli
+
+# Puerto personalizado
+ngrok-qr-cli --port 8080
+ngrok-qr-cli -p 8080
 ```
 
-Para especificar un puerto personalizado:
+---
+
+## Desarrollo local
+
+**Requisitos:** Node.js ≥ 18, pnpm
 
 ```bash
-npm start -- -p 8080
+git clone https://github.com/tuusuario/ngrok-qr-cli.git
+cd ngrok-qr-cli
+pnpm install
+pnpm start -- --port 3000
 ```
 
-Modo desarrollo:
+### Scripts disponibles
+
+| Comando | Descripción |
+|---------|-------------|
+| `pnpm start` | Ejecuta sin compilar (tsx) |
+| `pnpm run dev` | Modo watch (recarga automática) |
+| `pnpm run build` | Compila TypeScript → `dist/` |
+| `pnpm run lint` | Linting con oxlint |
+| `pnpm run format` | Formatea el código con Prettier |
+
+---
+
+## Publicar en npm
 
 ```bash
-npm run dev
+# Compilar y empaquetar
+pnpm run build
+pnpm pack           # genera ngrok-qr-cli-x.x.x.tgz
+
+# Publicar al registro de npm
+pnpm publish
+```
+
+> Requiere cuenta en [npmjs.com](https://npmjs.com) y `npm login`.
+
+---
+
+## Instalar desde tarball (sin npm registry)
+
+Para distribuir sin publicar en npm:
+
+```bash
+# En la máquina de desarrollo
+pnpm run build
+pnpm pack
+
+# Transferir ngrok-qr-cli-2.0.0.tgz a la otra máquina y ejecutar:
+npm install -g ngrok-qr-cli-2.0.0.tgz
 ```
 
 ---
 
-## 🛠️ Scripts disponibles
+## Tecnologías
 
-- `npm run build` - Compila el proyecto TypeScript a JavaScript
-- `npm start` - Ejecuta la aplicación
-- `npm run dev` - Inicia la aplicación en modo desarrollo con recarga automática
-- `npm run format` - Formatea el código usando Prettier
-- `npm run format:check` - Verifica el formato del código
-
----
-
-## 🔧 Tecnologías utilizadas
-
-- [TypeScript](https://www.typescriptlang.org/) - Lenguaje de programación
-- [ngrok](https://ngrok.com/) - Túneles seguros
-- [qrcode](https://www.npmjs.com/package/qrcode) - Generación de códigos QR
-- [chalk](https://www.npmjs.com/package/chalk) - Estilos en la terminal
-- [yargs](https://www.npmjs.com/package/yargs) - Análisis de argumentos CLI
-- [ts-node](https://www.npmjs.com/package/ts-node) - Ejecución de TypeScript
+- [TypeScript](https://www.typescriptlang.org/) — lenguaje tipado
+- [tsup](https://tsup.egoist.dev/) — bundler / compilador
+- [ngrok](https://ngrok.com/) — túneles seguros
+- [qrcode](https://www.npmjs.com/package/qrcode) — generación de QR
+- [chalk](https://www.npmjs.com/package/chalk) — estilos en terminal
 
 ---
 
-## 📝 Licencia
+## Solución de problemas
 
-Este proyecto está bajo la licencia ISC.
+**"invalid tunnel configuration" / "tunnel already exists"**
+El binario ngrok v3 tiene un bug de timing al arrancar. Esta herramienta lo resuelve
+automáticamente con un reintento tras detectar la sesión activa.
 
----
+**"Your account is limited to 1 simultaneous ngrok agent sessions" (ERR_NGROK_108)**
+Asegúrate de que no haya otra sesión de ngrok activa. Las cuentas gratuitas permiten
+solo 1 agente a la vez.
 
-## 🤝 Contribuir
-
-¡Las contribuciones son bienvenidas! Por favor, abre un issue o un pull request.
-
----
-
-## ⚠️ Solución de problemas
-
-Si encuentras el error "Tunnel session failed", asegúrate de:
-
-1. Tener configurado correctamente tu token de autenticación de ngrok
-2. Que el puerto que intentas exponer esté disponible
-3. Que no haya otro túnel de ngrok activo
+**El binario de ngrok no se descargó (usuarios pnpm)**
+Ejecuta `pnpm approve-builds` para permitir los scripts de instalación del paquete ngrok.
 
 ---
 
-## 📬 Soporte
+## Licencia
 
-¿Tienes dudas, sugerencias o encontraste un bug? Abre un issue en el repositorio o contáctame.
+ISC

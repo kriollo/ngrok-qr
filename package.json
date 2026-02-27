@@ -1,22 +1,32 @@
 {
     "name": "ngrok-qr-cli",
-    "version": "2.0.0",
-    "description": "Aplicación que muestra la URL de ngrok en código QR",
+    "version": "2.1.0",
+    "description": "CLI para exponer un servidor local con ngrok y mostrar la URL como código QR",
     "type": "module",
     "main": "dist/index.js",
     "bin": {
         "ngrok-qr-cli": "dist/index.js"
     },
+    "exports": {
+        ".": "./dist/index.js"
+    },
+    "engines": {
+        "node": ">=18.0.0"
+    },
     "scripts": {
-        "build": "npx tsc",
+        "build": "tsup",
         "start": "tsx src/index.ts",
         "dev": "tsx watch src/index.ts",
+        "lint": "oxlint .",
         "format": "prettier --write \"src/**/*.{ts,js}\"",
-        "format:check": "prettier --check \"src/**/*.{ts,js}\""
+        "format:check": "prettier --check \"src/**/*.{ts,js}\"",
+        "prepublishOnly": "pnpm run build"
     },
     "keywords": [
         "ngrok",
         "qr",
+        "cli",
+        "tunnel",
         "typescript"
     ],
     "author": "",
@@ -27,19 +37,23 @@
         "README.md"
     ],
     "dependencies": {
-        "@types/node": "^25.3.1",
-        "@types/qrcode": "^1.5.6",
         "chalk": "^5.6.2",
         "ngrok": "5.0.0-beta.2",
-        "qrcode": "^1.5.4",
-        "ts-node": "^10.9.2",
-        "yargs": "^18.0.0"
+        "qrcode": "^1.5.4"
     },
     "devDependencies": {
-        "@types/yargs": "^17.0.35",
+        "@types/node": "^25.3.1",
+        "@types/qrcode": "^1.5.6",
         "oxlint": "^1.50.0",
         "prettier": "^3.8.1",
+        "tsup": "^8.5.1",
         "tsx": "^4.21.0",
         "typescript": "^5.9.3"
+    },
+    "pnpm": {
+        "onlyBuiltDependencies": [
+            "esbuild",
+            "ngrok"
+        ]
     }
 }

@@ -2,8 +2,24 @@ import chalk from 'chalk';
 import ngrok from 'ngrok';
 import { createInterface } from 'readline/promises';
 import { setTimeout as delay } from 'timers/promises';
+import { randomUUID } from 'crypto';
 
 let ngrokStarted = false;
+
+function isSessionLimitError(error: unknown): boolean {
+    const err = error as {
+        message?: string;
+        body?: { details?: { err?: string } };
+    };
+    const message = err?.message ?? '';
+    const details = err?.body?.details?.err ?? '';
+    return (
+        message.includes('ERR_NGROK_108') ||
+        details.includes('ERR_NGROK_108') ||
+        message.toLowerCase().includes('session') ||
+        details.toLowerCase().includes('session')
+    );
+}
 
 async function promptForAuthtoken(): Promise<string> {
     const rl = createInterface({
@@ -118,13 +134,17 @@ export async function startNgrok(port: number = 3000): Promise<string> {
     // (via onStatusChange), y reintentar con un nuevo UUID.
     let resolveSession!: () => void;
     // eslint-disable-next-line promise/avoid-new
-    const sessionReady = new Promise<void>(resolve => (resolveSession = resolve));
+    const sessionReady = new Promise<void>(
+        resolve => (resolveSession = resolve),
+    );
 
+    let lastError: unknown = null;
     for (let attempt = 1; attempt <= 2; attempt++) {
         try {
             const url = await ngrok.connect({
                 addr: port,
                 authtoken: token,
+                name: randomUUID(),
                 // Solo en el primer intento: registrar el callback en startProcess
                 ...(attempt === 1 && {
                     onStatusChange: (status: 'connected' | 'closed') => {
@@ -148,6 +168,7 @@ export async function startNgrok(port: number = 3000): Promise<string> {
             }
             return url;
         } catch (error) {
+            lastError = error;
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
             const isGhostTunnelBug =
                 (error as any)?.body?.error_code === 102 && attempt < 2;
@@ -158,7 +179,35 @@ export async function startNgrok(port: number = 3000): Promise<string> {
         }
     }
 
+    if (isSessionLimitError(lastError)) {
+        throw new Error(
+            'Parece que ya hay una sesión ngrok activa con este token en este u otro PC. ' +
+                'Cierra esa sesión y vuelve a intentar.',
+        );
+    }
+
     throw new Error('No se pudo establecer el túnel ngrok');
+}
+
+export async function refreshAuthtoken(): Promise<string> {
+    const token = await promptForAuthtoken();
+
+    if (!token) {
+        throw new Error('Se requiere un authtoken de ngrok para continuar.');
+    }
+
+    try {
+        await ngrok.authtoken(token);
+        console.log(chalk.green('✓') + ' Authtoken configurado correctamente.');
+    } catch (error) {
+        const msg = error instanceof Error ? error.message : String(error);
+        console.error(chalk.red('✖ Error al configurar el authtoken:'), msg);
+        throw new Error(
+            'Error al configurar el authtoken. Verifica que sea válido.',
+        );
+    }
+
+    return token;
 }
 
 export async function stopNgrok(): Promise<void> {

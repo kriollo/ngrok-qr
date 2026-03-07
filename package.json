@@ -1,6 +1,6 @@
 {
     "name": "ngrok-qr-cli",
-    "version": "2.1.2",
+    "version": "2.2.1",
     "description": "CLI para exponer un servidor local con ngrok y mostrar la URL como código QR",
     "type": "module",
     "main": "dist/index.js",

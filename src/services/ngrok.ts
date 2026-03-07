@@ -210,6 +210,88 @@ export async function refreshAuthtoken(): Promise<string> {
     return token;
 }
 
+export async function setAuthtoken(token: string): Promise<void> {
+    if (!token) {
+        throw new Error('Se requiere un authtoken de ngrok para continuar.');
+    }
+
+    try {
+        await ngrok.authtoken(token);
+        console.log(chalk.green('✓') + ' Authtoken configurado correctamente.');
+    } catch (error) {
+        const msg = error instanceof Error ? error.message : String(error);
+        console.error(chalk.red('✖ Error al configurar el authtoken:'), msg);
+        throw new Error(
+            'Error al configurar el authtoken. Verifica que sea válido.',
+        );
+    }
+}
+
+/**
+ * Valida un authtoken intentando abrir una sesión efímera de ngrok.
+ * Devuelve true si la sesión se pudo establecer (token válido), false en caso contrario.
+ */
+export async function validateAuthtoken(token?: string): Promise<boolean> {
+    try {
+        const tokenToCheck = token ?? (await getAuthtoken());
+        if (!tokenToCheck) {
+            console.error('No se encontró authtoken para validar.');
+            return false;
+        }
+
+        // Intentar limpiar posibles daemons huérfanos antes de validar.
+        try {
+            await killOrphanedDaemon();
+        } catch {
+            // Ignorar errores al intentar matar daemons huérfanos.
+        }
+
+        try {
+            await ngrok.kill();
+        } catch {
+            // Ignorar si no hay proceso activo
+        }
+
+        const name = randomUUID();
+        const connectPromise = ngrok.connect({
+            addr: 4040,
+            authtoken: tokenToCheck,
+            name,
+        });
+
+        // Timeout razonable para la operación
+        const timeout = new Promise<never>((_, reject) =>
+            setTimeout(
+                () => reject(new Error('Timeout al validar token (10s)')),
+                10000,
+            ),
+        );
+
+        const url = (await Promise.race([connectPromise, timeout])) as
+            | string
+            | undefined;
+
+        if (url) {
+            // Limpiar la sesión creada para la validación
+            try {
+                await ngrok.disconnect(url);
+            } catch {
+                // Ignorar
+            }
+            try {
+                await ngrok.kill();
+            } catch {
+                // Ignorar
+            }
+            return true;
+        }
+
+        return false;
+    } catch {
+        return false;
+    }
+}
+
 export async function stopNgrok(): Promise<void> {
     try {
         await ngrok.disconnect();
